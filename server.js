@@ -1,10 +1,9 @@
 const express = require('express');
-const cors = require('cors');
 const socket = require('socket.io');
 const path = require('path');
 
 const app = express();
-app.use(cors());
+
 app.use(express.static(path.join(__dirname, '/client')));
 
 const tasks = [];
@@ -18,14 +17,13 @@ app.use((req, res) => {
 });
 
 const io = socket(server);
+io.set('transports', [ 'websocket' ]);
 
 io.on('connection', (socket) => {
-    console.log('New client connected!');
     socket.emit('updateData', tasks);
     socket.on('addTask', (task) => {
-        tasks.push(task);
+        tasks.push({id: task.id, name: task.name});
         socket.broadcast.emit('addTask', task);
-        console.log('task added');
     });
     socket.on('removeTask', (index) => {
         tasks.splice(index, 1);
